@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balance Simulator | Interactive Scale</title>
+    <title>Scottish Widows | Balance Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --sw-red: #e60012;
             --sw-dark-teal: #002e3b;
-            --sw-light-gray: #f8fafc;
+            --sw-light-gray: #f1f5f9;
             --sw-border: #e2e8f0;
             --sw-green: #059669;
+            --beam-color: #475569;
         }
 
         body {
-            font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: white;
+            font-family: "Segoe UI", Roboto, sans-serif;
+            background-color: #ffffff;
             color: var(--sw-dark-teal);
             margin: 0;
-            overflow-x: hidden;
         }
 
-        /* Navigation Mockup */
+        /* 导航栏 */
         .nav-mock {
             height: 70px;
             border-bottom: 1px solid var(--sw-border);
@@ -36,339 +36,335 @@
             z-index: 100;
         }
 
-        /* Hero Section */
+        /* Hero 区域 */
         .hero-section {
-            padding: 80px 20px 40px;
+            padding: 60px 20px 20px;
             text-align: center;
-            max-width: 850px;
+            max-width: 800px;
             margin: 0 auto;
         }
         .hero-title {
-            font-size: 44px;
+            font-size: 42px;
             font-weight: 800;
             margin-bottom: 15px;
-            letter-spacing: -0.02em;
-            line-height: 1.1;
-        }
-        .hero-subtitle {
-            font-size: 19px;
-            color: #475569;
-            line-height: 1.6;
+            color: var(--sw-dark-teal);
         }
 
-        /* Balance Stage */
-        .balance-container {
-            padding: 20px 5%;
-        }
-        .balance-stage {
-            height: 420px;
+        /* 核心天平区域 */
+        .balance-viewport {
+            height: 500px;
+            background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
+            margin: 20px 5%;
+            border-radius: 40px;
+            position: relative;
             display: flex;
             justify-content: center;
-            align-items: center;
-            background-color: var(--sw-light-gray);
-            border-radius: 32px;
-            position: relative;
-            border: 1px solid var(--sw-border);
+            align-items: flex-end;
             overflow: hidden;
+            border: 1px solid var(--sw-border);
         }
 
-        /* Scale Mechanics */
-        .pivot {
+        /* 底座 */
+        .base-stand {
             position: absolute;
-            bottom: 100px;
-            width: 0;
-            height: 0;
-            border-left: 30px solid transparent;
-            border-right: 30px solid transparent;
-            border-bottom: 50px solid #94a3b8;
+            bottom: 0;
+            width: 180px;
+            height: 280px;
+            background: linear-gradient(to bottom, #94a3b8, #64748b);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
             z-index: 1;
         }
-        .beam {
-            width: 75%;
-            max-width: 750px;
-            height: 8px;
-            background: #64748b;
-            border-radius: 10px;
-            position: relative;
-            transform-origin: center;
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            z-index: 2;
-        }
-        
-        /* Weights Slots */
-        .slot {
+        .pivot-point {
             position: absolute;
-            top: -140px;
+            bottom: 275px;
+            width: 16px;
+            height: 16px;
+            background: #334155;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        /* 横梁 */
+        .balance-beam {
+            width: 700px;
+            height: 12px;
+            background: linear-gradient(to bottom, #64748b, #334155);
+            border-radius: 6px;
+            position: absolute;
+            bottom: 277px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            transform-origin: center;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5;
+        }
+
+        /* 吊绳 */
+        .wire {
+            width: 2px;
+            height: 60px;
+            background: #94a3b8;
+            margin: 0 auto;
+        }
+
+        /* 托盘 */
+        .pallet {
             width: 280px;
+            min-height: 180px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 2px solid white;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            justify-items: center;
+            gap: 12px;
+            padding: 15px;
+            position: relative;
+            transform-origin: top center;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .left-slot { left: 0; }
-        .right-slot { right: 0; }
 
-        /* Icon Animation & Delete Logic */
+        .pallet-container {
+            position: absolute;
+            top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .left-container { left: -140px; }
+        .right-container { right: -140px; }
+
+        /* 图标样式 */
         .weight-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transition: transform 0.5s, opacity 0.3s;
             cursor: pointer;
             position: relative;
+            animation: bounceIn 0.5s ease;
         }
-        .weight-item:hover .icon-box {
-            transform: scale(1.05);
-            border-color: var(--sw-red) !important;
-            box-shadow: 0 0 10px rgba(230,0,18,0.2);
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
         }
-        .weight-item:hover::after {
-            content: '×';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: var(--sw-red);
-            color: white;
-            width: 24px;
-            height: 24px;
+
+        .icon-circle {
+            width: 54px;
+            height: 54px;
+            background: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
+            border: 2px solid var(--sw-border);
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-
-        @keyframes dropIn { 
-            from { opacity: 0; transform: translateY(-40px) scale(0.6); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
+        .weight-item:hover .icon-circle {
+            border-color: var(--sw-red);
+            transform: scale(1.1);
         }
-
-        .icon-box {
-            width: 64px;
-            height: 64px;
-            border-radius: 18px;
-            background: white;
-            border: 1px solid var(--sw-border);
+        .weight-item:hover::after {
+            content: '×';
+            position: absolute;
+            top: -5px;
+            right: 0px;
+            background: var(--sw-red);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            transition: all 0.2s;
-        }
-        .weight-label {
-            font-size: 11px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
         }
 
-        /* Interaction Panels */
-        .control-grid {
-            max-width: 1050px;
-            margin: 60px auto;
+        .item-label {
+            font-size: 10px;
+            font-weight: 700;
+            margin-top: 4px;
+            color: #64748b;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* 控制面板 */
+        .controls {
+            max-width: 1000px;
+            margin: 40px auto;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 30px;
             padding: 0 20px;
         }
-        .control-card {
-            background: white;
+        .control-group {
+            background: #f8fafc;
             border: 1px solid var(--sw-border);
-            padding: 40px;
+            padding: 30px;
             border-radius: 24px;
-            transition: all 0.3s;
         }
-        .control-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 25px 30px -10px rgba(0,0,0,0.05);
-        }
-        .card-title {
-            font-size: 24px;
-            font-weight: 800;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-        }
-        .add-btn {
+        .btn-add {
             background: white;
-            border: 2px solid var(--sw-dark-teal);
-            padding: 14px 28px;
-            border-radius: 40px;
-            font-size: 15px;
-            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            margin: 5px;
         }
-        .add-btn:hover {
+        .btn-add:hover {
+            border-color: var(--sw-dark-teal);
             background: var(--sw-dark-teal);
             color: white;
         }
 
-        /* Footer Entry Button */
-        .footer-action {
+        .footer-hint {
             text-align: center;
-            padding: 40px 0 120px;
-        }
-        .hint-text {
-            font-size: 14px;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            font-style: italic;
-        }
-        .btn-pivot {
-            background-color: var(--sw-red);
-            color: white;
-            padding: 22px 70px;
-            border-radius: 60px;
-            font-size: 22px;
-            font-weight: 800;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 12px 25px rgba(230, 0, 18, 0.25);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-pivot:hover {
-            background-color: #c0000f;
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(230, 0, 18, 0.35);
+            padding: 20px 0 60px;
         }
     </style>
 </head>
 <body>
 
     <nav class="nav-mock">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="background: var(--sw-red); width: 32px; height: 32px; border-radius: 6px;"></div>
-            <span style="font-weight: 900; letter-spacing: 1.5px; font-size: 22px;">SCOTTISH WIDOWS</span>
+        <div class="flex items-center gap-2">
+            <div class="bg-[#e60012] w-8 h-8 rounded"></div>
+            <span class="font-black text-xl tracking-wider">SCOTTISH WIDOWS</span>
         </div>
-        <div style="display: flex; gap: 35px; font-size: 14px; font-weight: 600; color: #475569;">
-            <span>Personal</span>
-            <span>Employers</span>
-            <span>Advisers</span>
+        <div class="hidden md:flex gap-8 text-sm font-bold text-slate-500">
+            <span>Retirement</span>
+            <span>Insurance</span>
+            <span>Investments</span>
         </div>
     </nav>
 
     <header class="hero-section">
-        <h1 class="hero-title">Life is a weight. Let's balance it.</h1>
-        <p class="hero-subtitle">Add your financial commitments and current protections to see how stable your scale is. Click an item to remove it from the scale.</p>
+        <h1 class="hero-title">Balance Your Future</h1>
+        <p class="text-slate-500 text-lg">Add your protections and commitments to see if your financial life is in balance. Click any item on the scale to remove it.</p>
     </header>
 
-    <div class="balance-container">
-        <div class="balance-stage">
-            <div id="beam" class="beam">
-                <div id="left-slot" class="slot left-slot"></div>
-                <div id="right-slot" class="slot right-slot"></div>
+    <div class="balance-viewport">
+        <!-- 天平核心 -->
+        <div id="beam" class="balance-beam">
+            <!-- 左托盘 -->
+            <div class="pallet-container left-container">
+                <div class="wire"></div>
+                <div id="left-pallet" class="pallet"></div>
             </div>
-            <div class="pivot"></div>
+            
+            <!-- 右托盘 -->
+            <div class="pallet-container right-container">
+                <div class="wire"></div>
+                <div id="right-pallet" class="pallet"></div>
+            </div>
+        </div>
+
+        <div class="pivot-point"></div>
+        <div class="base-stand"></div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3 class="font-bold text-emerald-700 mb-4 flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                My Protections
+            </h3>
+            <div class="flex flex-wrap">
+                <button class="btn-add" onclick="addItem('guard', 'life', 'Life Policy')">Life Policy</button>
+                <button class="btn-add" onclick="addItem('guard', 'health', 'Critical Illness')">Critical Illness</button>
+                <button class="btn-add" onclick="addItem('guard', 'save', 'Pensions')">Pensions</button>
+                <button class="btn-add" onclick="addItem('guard', 'save', 'Emergency Fund')">Emergency Fund</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                My Commitments
+            </h3>
+            <div class="flex flex-wrap">
+                <button class="btn-add" onclick="addItem('burden', 'house', 'Mortgage')">Mortgage</button>
+                <button class="btn-add" onclick="addItem('burden', 'child', 'School Fees')">School Fees</button>
+                <button class="btn-add" onclick="addItem('burden', 'care', 'Daily Living')">Daily Living</button>
+                <button class="btn-add" onclick="addItem('burden', 'house', 'Loans')">Loans</button>
+            </div>
         </div>
     </div>
 
-    <main class="control-grid">
-        <section class="control-card">
-            <div class="card-title">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span>Commitments</span>
-            </div>
-            <div class="button-group">
-                <button class="add-btn" onclick="addItem('burden', 'child', 'Education')">Education</button>
-                <button class="add-btn" onclick="addItem('burden', 'house', 'Mortgage')">Mortgage</button>
-                <button class="add-btn" onclick="addItem('burden', 'care', 'Family Care')">Family Care</button>
-            </div>
-        </section>
-
-        <section class="control-card">
-            <div class="card-title" style="color: var(--sw-green);">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                <span>Protections</span>
-            </div>
-            <div class="button-group">
-                <button class="add-btn" onclick="addItem('guard', 'life', 'Life Cover')">Life Cover</button>
-                <button class="add-btn" onclick="addItem('guard', 'health', 'Health')">Health</button>
-                <button class="add-btn" onclick="addItem('guard', 'save', 'Savings')">Savings</button>
-            </div>
-        </section>
-    </main>
-
-    <div class="footer-action">
-        <p class="hint-text">Click items on the scale to remove them</p>
-        <button class="btn-pivot">
-            Find your pivot
-            <svg style="margin-left:10px" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    <footer class="footer-hint">
+        <button class="bg-[#e60012] text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl hover:scale-105 transition-transform">
+            Calculate My Shortfall
         </button>
-    </div>
+        <p class="mt-6 text-slate-400 text-sm italic">Interactive Balance Model v2.0</p>
+    </footer>
 
     <script>
-        let state = { guard: 0, burden: 0 };
+        let counts = { guard: 0, burden: 0 };
         const iconPaths = {
-            child: '<path d="M18 9v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path><path d="M14 6h-4V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2Z"></path>',
-            house: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>',
-            care: '<circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path>',
             life: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>',
-            health: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>',
-            save: '<circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path>'
+            health: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>',
+            save: '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>',
+            house: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>',
+            child: '<circle cx="12" cy="7" r="4"></circle><path d="M20 21v-2a4 4 0 0 0-3-3.87M4 21v-2a4 4 0 0 1 3-3.87"></path>',
+            care: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>'
         };
 
-        function addItem(type, key, label) {
-            const slotId = type === 'guard' ? 'left-slot' : 'right-slot';
-            const slot = document.getElementById(slotId);
+        function addItem(type, iconKey, label) {
+            const palletId = type === 'guard' ? 'left-pallet' : 'right-pallet';
+            const pallet = document.getElementById(palletId);
             
-            if(slot.children.length >= 9) return;
+            if (pallet.children.length >= 9) return;
 
             const color = type === 'guard' ? 'var(--sw-green)' : 'var(--sw-dark-teal)';
             const item = document.createElement('div');
             item.className = 'weight-item';
-            
-            // Handle deletion on click
-            item.onclick = () => removeItem(item, type);
-            
+            item.onclick = () => {
+                item.style.transform = 'scale(0)';
+                item.style.opacity = '0';
+                setTimeout(() => {
+                    item.remove();
+                    counts[type]--;
+                    updateScale();
+                }, 300);
+            };
+
             item.innerHTML = `
-                <div class="icon-box" style="border-color: ${color}">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        ${iconPaths[key]}
+                <div class="icon-circle" style="border-color: ${color}44">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        ${iconPaths[iconKey]}
                     </svg>
                 </div>
-                <div class="weight-label">${label}</div>
+                <div class="item-label">${label}</div>
             `;
-            
-            slot.appendChild(item);
-            state[type]++;
-            updatePhysics();
+
+            pallet.appendChild(item);
+            counts[type]++;
+            updateScale();
         }
 
-        function removeItem(element, type) {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(-20px) scale(0.8)';
-            
-            setTimeout(() => {
-                element.remove();
-                state[type]--;
-                updatePhysics();
-            }, 300);
-        }
-
-        function updatePhysics() {
+        function updateScale() {
             const beam = document.getElementById('beam');
-            const diff = state.burden - state.guard;
-            const angle = Math.max(-15, Math.min(15, diff * 5));
+            const leftPallet = document.getElementById('left-pallet');
+            const rightPallet = document.getElementById('right-pallet');
+            
+            const diff = counts.burden - counts.guard;
+            const angle = Math.max(-15, Math.min(15, diff * 4));
+            
+            // 旋转横梁
             beam.style.transform = `rotate(${angle}deg)`;
-
-            document.querySelectorAll('.weight-item').forEach(el => {
-                el.style.transform = `rotate(${-angle}deg)`;
-            });
+            
+            // 反向旋转托盘，使其保持水平
+            leftPallet.style.transform = `rotate(${-angle}deg)`;
+            rightPallet.style.transform = `rotate(${-angle}deg)`;
         }
     </script>
 </body>
