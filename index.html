@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balance Simulator | Scottish Widows Style</title>
+    <title>Balance Simulator | Interactive Scale</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -108,14 +108,38 @@
         .left-slot { left: 0; }
         .right-slot { right: 0; }
 
-        /* Icon Animation */
+        /* Icon Animation & Delete Logic */
         .weight-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transition: transform 0.5s;
+            transition: transform 0.5s, opacity 0.3s;
+            cursor: pointer;
+            position: relative;
         }
+        .weight-item:hover .icon-box {
+            transform: scale(1.05);
+            border-color: var(--sw-red) !important;
+            box-shadow: 0 0 10px rgba(230,0,18,0.2);
+        }
+        .weight-item:hover::after {
+            content: '×';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--sw-red);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
         @keyframes dropIn { 
             from { opacity: 0; transform: translateY(-40px) scale(0.6); } 
             to { opacity: 1; transform: translateY(0) scale(1); } 
@@ -132,6 +156,7 @@
             justify-content: center;
             margin-bottom: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            transition: all 0.2s;
         }
         .weight-label {
             font-size: 11px;
@@ -195,6 +220,12 @@
             text-align: center;
             padding: 40px 0 120px;
         }
+        .hint-text {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
         .btn-pivot {
             background-color: var(--sw-red);
             color: white;
@@ -215,12 +246,6 @@
             transform: translateY(-4px);
             box-shadow: 0 20px 40px rgba(230, 0, 18, 0.35);
         }
-        .btn-pivot svg {
-            transition: transform 0.3s;
-        }
-        .btn-pivot:hover svg {
-            transform: translateX(8px);
-        }
     </style>
 </head>
 <body>
@@ -239,12 +264,11 @@
 
     <header class="hero-section">
         <h1 class="hero-title">Life is a weight. Let's balance it.</h1>
-        <p class="hero-subtitle">Add your financial commitments and current protections to see how stable your scale is. We're here to help you find your pivot point.</p>
+        <p class="hero-subtitle">Add your financial commitments and current protections to see how stable your scale is. Click an item to remove it from the scale.</p>
     </header>
 
     <div class="balance-container">
         <div class="balance-stage">
-            <!-- Scale Visualization -->
             <div id="beam" class="beam">
                 <div id="left-slot" class="slot left-slot"></div>
                 <div id="right-slot" class="slot right-slot"></div>
@@ -254,7 +278,6 @@
     </div>
 
     <main class="control-grid">
-        <!-- Commitments (Negative weights) -->
         <section class="control-card">
             <div class="card-title">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
@@ -267,7 +290,6 @@
             </div>
         </section>
 
-        <!-- Protections (Positive weights) -->
         <section class="control-card">
             <div class="card-title" style="color: var(--sw-green);">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -275,16 +297,17 @@
             </div>
             <div class="button-group">
                 <button class="add-btn" onclick="addItem('guard', 'life', 'Life Cover')">Life Cover</button>
-                <button class="add-btn" onclick="addItem('guard', 'health', 'Critical Illness')">Health</button>
+                <button class="add-btn" onclick="addItem('guard', 'health', 'Health')">Health</button>
                 <button class="add-btn" onclick="addItem('guard', 'save', 'Savings')">Savings</button>
             </div>
         </section>
     </main>
 
     <div class="footer-action">
-        <button class="btn-pivot" onclick="scrollToTop()">
+        <p class="hint-text">Click items on the scale to remove them</p>
+        <button class="btn-pivot">
             Find your pivot
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            <svg style="margin-left:10px" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
     </div>
 
@@ -293,14 +316,13 @@
         const iconPaths = {
             child: '<path d="M18 9v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9"></path><path d="M14 6h-4V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2Z"></path>',
             house: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>',
-            care: '<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"></path><path d="M12 7v10"></path><path d="M8 11h8"></path>',
+            care: '<circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path>',
             life: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>',
             health: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>',
             save: '<circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path>'
         };
 
         function addItem(type, key, label) {
-            // Commitments (burden) go to the RIGHT slot, Protections (guard) go to the LEFT slot
             const slotId = type === 'guard' ? 'left-slot' : 'right-slot';
             const slot = document.getElementById(slotId);
             
@@ -309,6 +331,10 @@
             const color = type === 'guard' ? 'var(--sw-green)' : 'var(--sw-dark-teal)';
             const item = document.createElement('div');
             item.className = 'weight-item';
+            
+            // Handle deletion on click
+            item.onclick = () => removeItem(item, type);
+            
             item.innerHTML = `
                 <div class="icon-box" style="border-color: ${color}">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -323,22 +349,26 @@
             updatePhysics();
         }
 
+        function removeItem(element, type) {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(-20px) scale(0.8)';
+            
+            setTimeout(() => {
+                element.remove();
+                state[type]--;
+                updatePhysics();
+            }, 300);
+        }
+
         function updatePhysics() {
             const beam = document.getElementById('beam');
-            // Physics: Burden (Right) makes it tilt right (positive angle), 
-            // Guard (Left) makes it tilt left (negative angle)
             const diff = state.burden - state.guard;
             const angle = Math.max(-15, Math.min(15, diff * 5));
             beam.style.transform = `rotate(${angle}deg)`;
 
-            // Counter-rotate items so they stay upright
             document.querySelectorAll('.weight-item').forEach(el => {
                 el.style.transform = `rotate(${-angle}deg)`;
             });
-        }
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
